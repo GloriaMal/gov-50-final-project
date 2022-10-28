@@ -11,4 +11,22 @@ output:
 
 ## Project thoughts
 
-I am interested in exploring data related to census populations in different urban areas around the country and seeing how it compares to the voting and civic participation patterns of immigrant popualtions. 
+
+Does the influx of new populations in an area through migration and demographic changes have an impact on the amount of students enrolled in educational institutions?In this project I will look at the California Census comparing the results from the 2021 census report and the 2011 census report analyzing the differences in demographic distribution and will compare that to the populations enrolled in educational instutions at the time the census was taking. I am seeking to find out if certain demographics or ethnicities truly impact the amount of students enrolled. I hypothesize that the increasment of immigrant demographics may be a reason for which the educational enrollment may increase because it is an example of how their desires is to obtain an education.  I am interested in exploring data related to census populations in different urban areas around the country and seeing how it compares to the educational enrollment of an area. I will be looking at the variable School Enrollment specifically College or graduate school enrollment,  and the total number of races reported and their distribution within the greater population. I will look at the race variable as an explanatory variable looking at the changes in demographic over the years. My outcome variable will be the educational enrollment in college or grad school. For example, if I observe an increase in the presence of the "non-white hispanic" population, when comparing 2011- 2021,  and likewise see an increase in the enrollment of "non-white hispanic" population from 2011 to 2021, I can attribute that this positive change can be attributed to the demographic's growing desire to obtain an education. If this was true it would be something to help supporty my hypothesis that certain demographics aligning with their migration, have desires to gain educational attainment seen through their enrollment in higher education institutions. On the other hand, if I observe that there is a decrease from 2011-2021 in the educational enrollement of "Non-white hispanic" yet an increase in the demographic percentage of "non-white hispanic" this would be a negative relationship and would prove against my hypothesis. 
+
+
+```{r}
+library(tidyverse)
+california_census_2021<- read.csv("~/Downloads/Gov 50/new_race_census.csv")
+
+california_census_2021
+
+california_census_2011<- read.csv("~/Downloads/Gov 50/new_cal_2011.csv")
+
+california_census_2011
+
+
+census2011_2021<- full_join(california_census_2011, california_census_2021)
+
+census2011_2021
+```
