@@ -17,6 +17,8 @@ Does the influx of new populations in an area through migration and demographic 
 
 ```{r}
 library(tidyverse)
+install.packages("distill")
+
 california_census_2021<- read.csv("~/Downloads/Gov 50/new_race_census.csv")
 
 california_census_2021
