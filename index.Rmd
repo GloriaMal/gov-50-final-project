@@ -17,6 +17,9 @@ Does the influx of new populations in an area through migration and demographic 
 
 ```{r}
 library(tidyverse)
+library(tidyselect)
+library(dplyr)
+
 install.packages("distill")
 
 california_census_2021<- read.csv("~/Downloads/Gov 50/new_race_census.csv")
@@ -25,10 +28,44 @@ california_census_2021
 
 california_census_2011<- read.csv("~/Downloads/Gov 50/new_cal_2011.csv")
 
-california_census_2011
 
-
-census2011_2021<- full_join(california_census_2011, california_census_2021)
-
-census2011_2021
 ```
+
+
+```{r} 
+census_2011 <- california_census_2011 |>
+  select(Label..Grouping., California..Total.population..Estimate, California..Hispanic.or.Latino..of.any.race...200.299...Estimate)|>
+  rename( Labels2011 = Label..Grouping. , 
+          Total_Population_2011 = California..Total.population..Estimate ,
+          Latinx2011 = California..Hispanic.or.Latino..of.any.race...200.299...Estimate )
+
+
+census_2021 <- california_census_2021 |>
+  select(Label..Grouping. , California..Total.population..Estimate , California..Hispanic.or.Latino..of.any.race...Estimate) |>
+  rename( Labels2021 = Label..Grouping. ,
+          Total_Population_2021 = California..Total.population..Estimate ,
+          Latinx2021 = California..Hispanic.or.Latino..of.any.race...Estimate)
+
+
+census_2011|>
+  ggplot(aes(x = Total_Population_2011))
+  geom_bar()
+
+
+
+```
+
+
+
+```{r}
+school_enroll <- read.delim("https://www3.cde.ca.gov/demo-downloads/cgr/cgr16mo20.txt")
+
+school_enroll|>
+  select(AcademicYear, Enrolled.In.College...Total..16.Months.)|>
+  ggplot(aes(x = Enrolled.In.College...Total..16.Months.) +
+  geom_bar()
+
+```
+
+
+
