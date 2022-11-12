@@ -26,6 +26,30 @@ install.packages("distill")
 ```
 
 
+```{r}
+school_enroll <- read.delim("https://www3.cde.ca.gov/demo-downloads/cgr/cgr16mo20.txt")
+
+school_enroll|>
+  select(AcademicYear, Enrolled.In.College...Total..16.Months.)|>
+  ggplot(aes(x = Enrolled.In.College...Total..16.Months.)) +
+  geom_bar()
+
+
+
+
+
+california_census_2021<- read.csv("~/Downloads/Gov 50/new_race_census.csv")
+
+california_census_2021
+
+california_census_2011<- read.csv("~/Downloads/Gov 50/new_cal_2011.csv")
+
+```
+
+
+
+
+
 ```{r} 
 census_2011 <- california_census_2011 |>
   select(Label..Grouping., California..Total.population..Estimate, California..Hispanic.or.Latino..of.any.race...200.299...Estimate)|>
@@ -48,28 +72,4 @@ census_2011|>
 
 
 ```
-
-
-
-```{r}
-school_enroll <- read.delim("https://www3.cde.ca.gov/demo-downloads/cgr/cgr16mo20.txt")
-
-school_enroll|>
-  select(AcademicYear, Enrolled.In.College...Total..16.Months.)|>
-  ggplot(aes(x = Enrolled.In.College...Total..16.Months.)) +
-  geom_bar()
-
-
-
-
-
-california_census_2021<- read.csv("~/Downloads/Gov 50/new_race_census.csv")
-
-california_census_2021
-
-california_census_2011<- read.csv("~/Downloads/Gov 50/new_cal_2011.csv")
-
-```
-
-
 
