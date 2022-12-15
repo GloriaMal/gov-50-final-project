@@ -1,0 +1,173 @@
+---
+title: "trial sat"
+author: "Gloria Maldonado"
+date: "2022-12-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+		
+	Variable Name	Description
+"School 
+and Test"	School Year	The school year in which the tests were taken
+	School ID	Six digit school identification number
+	School Name	School's short name
+	Test	Assessment (i.e., PSAT9, PSAT10, SAT)
+Attainment	# Students	Number of students taking the PSAT or SAT assessment who received a Total Score. For information on inclusion and exclusion rules, see below.
+	Average Composite Score 	The average composite score for the students taking the test.
+	# Students with EBRW Score	Number of students taking the PSAT or SAT assessment who received an EBRW Score. For information on inclusion and exclusion rules, see below.
+	Average EBRW Score	The average Evidence-Based Reading and Writing score for the students taking the  Spring PSAT or SAT assessment.
+	# Students with Math Score	Number of students taking the PSAT or SAT assessment who received a Math Score. For information on inclusion and exclusion rules, see below.
+	Average Math Score	The average Math score for the students taking the Spring PSAT or SAT assessment.
+	% Meeting College Readiness Benchmark	The percentage of students taking the Spring PSAT or SAT assessment who scored at or above the grade-appropriate combined college readiness benchmark.
+	% Partially Met State Standards	The percentage of students who only partially met standards and demonstrated minimal understanding on the PSAT or SAT.
+	% Approached State Standards	The percentage of students who were approaching the proficiency level and demonstrated incomplete understanding on the PSAT or SAT.
+	% Met State Standards	The percentage of students who met the proficiency level and demonstrated adequate understanding on the PSAT or SAT.
+	% Exceeded State Standards	The percentage of students who exceeded the proficiency level and demonstrated a thorough understanding on the PSAT or SAT.
+	% Met or Exceeded State Standards	The percentage of students who met or exceeded the proficiency level set by the Illinois State Board of Education for students on the PSAT or SAT.
+
+
+```{r}
+library(tidyverse)
+
+library(readr)
+new_sat_data <- read_csv("~/Downloads/Gov 50/new_sat_data.csv")
+View(new_sat_data)
+
+library(readr)
+type_school_sat <- read_csv("~/Downloads/Gov 50/type_school_sat.csv")
+View(type_school_sat)
+```
+
+fixing up sat data 
+
+```{r}
+
+
+new_join_sat <- inner_join(new_sat_data, type_school_sat, by = "School ID" )
+
+CPS_SAT<- new_join_sat|> 
+  filter(Test == "SAT")
+
+CPS_SAT_plot <- CPS_SAT|>
+  group_by( `Type of School`)|>
+  ggplot( data = CPS_SAT, 
+          mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
+  geom_boxplot(na.rm = TRUE) + 
+  labs(
+    x = "Type of School",
+    y = "Average SAT Composite Score" 
+  )
+CPS_SAT_plot
+
+```
+
+
+``` {r}
+#Average of the `Average Composite Scores` by `Type of School`
+
+avg_sat_table<- CPS_SAT|>
+  group_by(`Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`)
+
+avg_sat_table
+
+```
+
+
+```{r}
+#Finding out the difference in averages between Charters and CPS Network 
+# this is the differenc between the SAT SCORE OF CPS and a Charter 
+sat_ate <- CPS_SAT|>
+  group_by(`Type of School`)|> 
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`) |> 
+  mutate(sat_ate = `Charter` - `CPS Network`)|>
+  pull(sat_ate)
+
+sat_ate
+```
+
+
+```{r} 
+CPS_SAT<- CPS_SAT|>
+  rename("Percent College Readiness" = contains( "Readiness", ignore.case = TRUE, vars = NULL))
+  
+
+college_readiness_average <- CPS_SAT|> 
+  group_by(`Type of School`)|>
+  summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))
+
+college_readiness_average
+
+#We wil see if there is an average treamtement effect for going to charter 
+
+college_readiness_ate<- CPS_SAT |>
+  group_by(`Type of School`)|>
+  summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))|>
+  pivot_wider(values_from = college_readiness_avg, names_from = `Type of School`)|>
+  mutate(college_readiness_ate = `Charter` - `CPS Network`)|>
+  pull(college_readiness_ate)
+
+college_readiness_ate
+
+```
+
+
+
+creating bootstraps to find out the various quantiles of the averages of different schools that fall in every different type  
+
+
+
+```{r}
+library(infer)
+set.seed(02138) 
+
+ate_boots<- CPS_SAT|>
+  rep_slice_sample(prop = 1, replace = TRUE, reps = 1000)|>
+  mutate()
+
+
+
+```
+
+
+
+
+
+
+correlation 
+
+try to find the correlation of the percentage that are college ready compared to the 
+
+i dont think this is going to be accurate becaus ein the past the two variables were calculates in a way where they were on the same scale and percentage level. 
+
+```{r}
+corr_sat_college_readiness <- cor(CPS_SAT$`Average Composite Score`, CPS_SAT$`Percent College Readiness`, method = "pearson")
+
+corr_sat_college_readiness
+```

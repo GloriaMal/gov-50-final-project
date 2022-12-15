@@ -16,60 +16,312 @@ Does the influx of new populations in an area through migration and demographic 
 
 
 
+	
+	Variable Name	Description
+"School 
+and Test"	School Year	The school year in which the tests were taken
+	School ID	Six digit school identification number
+	School Name	School's short name
+	Test	Assessment (i.e., PSAT9, PSAT10, SAT)
+Attainment	# Students	Number of students taking the PSAT or SAT assessment who received a Total Score. For information on inclusion and exclusion rules, see below.
+	Average Composite Score 	The average composite score for the students taking the test.
+	# Students with EBRW Score	Number of students taking the PSAT or SAT assessment who received an EBRW Score. For information on inclusion and exclusion rules, see below.
+	Average EBRW Score	The average Evidence-Based Reading and Writing score for the students taking the  Spring PSAT or SAT assessment.
+	# Students with Math Score	Number of students taking the PSAT or SAT assessment who received a Math Score. For information on inclusion and exclusion rules, see below.
+	Average Math Score	The average Math score for the students taking the Spring PSAT or SAT assessment.
+	% Meeting College Readiness Benchmark	The percentage of students taking the Spring PSAT or SAT assessment who scored at or above the grade-appropriate combined college readiness benchmark.
+	% Partially Met State Standards	The percentage of students who only partially met standards and demonstrated minimal understanding on the PSAT or SAT.
+	% Approached State Standards	The percentage of students who were approaching the proficiency level and demonstrated incomplete understanding on the PSAT or SAT.
+	% Met State Standards	The percentage of students who met the proficiency level and demonstrated adequate understanding on the PSAT or SAT.
+	% Exceeded State Standards	The percentage of students who exceeded the proficiency level and demonstrated a thorough understanding on the PSAT or SAT.
+	% Met or Exceeded State Standards	The percentage of students who met or exceeded the proficiency level set by the Illinois State Board of Education for students on the PSAT or SAT.
+
+
+
 ```{r}
 library(tidyverse)
 library(tidyselect)
 library(dplyr)
 
-install.packages("distill")
 
-```
+library(readr)
+new_sat_data <- read_csv("~/Downloads/Gov 50/new_sat_data.csv")
+View(new_sat_data)
 
+library(readr)
+type_school_sat <- read_csv("~/Downloads/Gov 50/type_school_sat.csv")
+View(type_school_sat)
+``` 
+
+fixing up sat data 
 
 ```{r}
-school_enroll <- read.delim("https://www3.cde.ca.gov/demo-downloads/cgr/cgr16mo20.txt")
-
-school_enroll|>
-  select(AcademicYear, Enrolled.In.College...Total..16.Months.)|>
-  ggplot(aes(x = Enrolled.In.College...Total..16.Months.)) +
-  geom_bar()
 
 
+new_join_sat <- inner_join(new_sat_data, type_school_sat, by = "School ID" )
+
+CPS_SAT<- new_join_sat
+
+CPS_SAT<- CPS_SAT|>
+  rename("Percent College Readiness" = contains( "Readiness", ignore.case = TRUE, vars = NULL))|>
+  filter(Test == "SAT")
 
 
+# Making a data set for 2020-2021 School Year 
 
-california_census_2021<- read.csv("~/Downloads/Gov 50/new_race_census.csv")
+CPS_SAT_20_21 <- CPS_SAT|> 
+  filter(`School Year` == "2020-2021")
 
-california_census_2021
+#investigating based on 2020-2021 School Year 
 
-california_census_2011<- read.csv("~/Downloads/Gov 50/new_cal_2011.csv")
+CPS_SAT_20_21_plot <- CPS_SAT_20_21|>
+  select(`School Year`== "2020-2021")|>
+  group_by( `Type of School`)|>
+  ggplot( data = CPS_SAT_20_21, 
+          mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
+  geom_boxplot(na.rm = TRUE) + 
+  labs( title = "2020-2021 SAT Averages by Type of School",
+    x = "Type of School",
+    y = "Average SAT Composite Score" 
+  )
+
+CPS_SAT_20_21_plot
 
 ```
 
+``` {r}
+#Average of the `Average Composite Scores` by `Type of School`
+
+avg_sat_table_20_21<- CPS_SAT_20_21 |>
+  group_by(`Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`)
+
+avg_sat_table_20_21
 
 
+#Finding out the difference in averages between Charters and CPS Network 
+# this is the differenc between the SAT SCORE OF CPS and a Charter 
+sat_ate <- CPS_SAT_20_21|>
+  group_by(`Type of School`)|> 
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`) |> 
+  mutate(sat_ate = `Charter` - `CPS Network`)|>
+  pull(sat_ate)
+
+sat_ate
+```
 
 
 ```{r} 
-census_2011 <- california_census_2011 |>
-  select(Label..Grouping., California..Total.population..Estimate, California..Hispanic.or.Latino..of.any.race...200.299...Estimate)|>
-  rename( Labels2011 = Label..Grouping. , 
-          Total_Population_2011 = California..Total.population..Estimate ,
-          Latinx2011 = California..Hispanic.or.Latino..of.any.race...200.299...Estimate )
+
+college_readiness_average <- CPS_SAT_20_21|> 
+  group_by(`Type of School`)|>
+  summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))
+
+college_readiness_average
+
+#We will see if there is an average treatement effect for going to charter 
+
+college_readiness_ate<- CPS_SAT_20_21 |>
+  group_by(`Type of School`)|>
+  summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))|>
+  pivot_wider(values_from = college_readiness_avg, names_from = `Type of School`)|>
+  mutate(college_readiness_ate = `Charter` - `CPS Network`)|>
+  pull(college_readiness_ate)
+
+college_readiness_ate
+
+```
 
 
-census_2021 <- california_census_2021 |>
-  select(Label..Grouping. , California..Total.population..Estimate , California..Hispanic.or.Latino..of.any.race...Estimate) |>
-  rename( Labels2021 = Label..Grouping. ,
-          Total_Population_2021 = California..Total.population..Estimate ,
-          Latinx2021 = California..Hispanic.or.Latino..of.any.race...Estimate)
+
+creating bootstraps to find out the various quantiles of the averages of different schools that fall in every different type  
 
 
-census_2011|>
-  ggplot(aes(x = Total_Population_2011))
-  geom_bar()
+20-21 
+```{r}
+library(infer)
+set.seed(02138) 
 
+ate_boots_20_21<- CPS_SAT_20_21|>
+  rep_slice_sample(prop = 1, replace = TRUE, reps = 1000)|>
+  group_by(replicate, `Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg , names_from = `Type of School`)|>
+  mutate(sat_ate = `Charter` - `CPS Network`)
+
+ate_boots_20_21 
+
+
+ate_sat_95_20_21 <- ate_boots_20_21|>
+  ungroup(replicate)|>
+  summarize(
+    lower_ci = quantile(sat_ate, probs = .025),
+    upper_ci = quantile(sat_ate, probs = 0.975)
+  )
+
+ate_sat_95_20_21
+
+```
+
+
+
+
+```{r}
+library(infer)
+set.seed(02138) 
+
+ate_boots_17_18<- CPS_SAT_17_18|>
+  rep_slice_sample(prop = 1, replace = TRUE, reps = 1000)|>
+  group_by(replicate, `Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg , names_from = `Type of School`)|>
+  mutate(sat_ate = `Charter` - `CPS Network`)
+
+ate_boots_17_18
+
+
+ate_sat_95_17_18 <- ate_boots_17_18|>
+  ungroup(replicate)|>
+  summarize(
+    lower_ci = quantile(sat_ate, probs = .025),
+    upper_ci = quantile(sat_ate, probs = 0.975)
+  )
+
+ate_sat_95_17_18
+```
+
+
+
+Math lets look how that impacts 
+
+```{r}
+math_CPS <- CPS_SAT_20_21|>
+  group_by(`Type of School`)|>
+  summarise(math_avg = mean(`Average Math Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = math_avg, names_from = `Type of School`) 
+
+math_CPS
+
+```
+
+
+
+
+
+correlation 
+
+try to find the correlation of the percentage that are college ready compared to the 
+
+i dont think this is going to be accurate becaus ein the past the two variables were calculates in a way where they were on the same scale and percentage level. 
+
+```{r}
+corr_sat_college_readiness <- cor(CPS_SAT$`Average Composite Score`, CPS_SAT$`Percent College Readiness`, method = "pearson")
+
+corr_sat_college_readiness
+```
+
+
+Trying to compare the 2020-2021 SAT to 2017 to 2018 
+```{r}
+
+
+# first I could filter so its only 2017-2018 and 2020-2021 but it may be interesting to look at alll the years 
+
+CPS_SAT_20_21_plot <- CPS_SAT_20_21|>
+  select(`School Year`== "2020-2021")|>
+  group_by( `Type of School`)|>
+  ggplot( data = CPS_SAT_20_21, 
+          mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
+  geom_boxplot(na.rm = TRUE) + 
+  labs( title = "2020-2021 SAT Averages by Type of School",
+    x = "Type of School",
+    y = "Average SAT Composite Score" 
+  )
+
+CPS_SAT_20_21_plot
+
+CPS_SAT_17_18 <- CPS_SAT|>
+  filter(`School Year` == "2017-2018")
+
+CPS_SAT_17_18_plot <-CPS_SAT_17_18|>
+  group_by(`Type of School`)|>
+  ggplot( data = CPS_SAT_17_18, 
+          mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
+  geom_boxplot(na.rm = TRUE) + 
+  labs( title = "SAT Averages by Type of School 2017-2018 ",
+    x = "Type of School",
+    y = "Average SAT Composite Score" 
+  )
+CPS_SAT_17_18_plot
+
+avg_sat_table_17_18<- CPS_SAT_17_18 |>
+  group_by(`Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`)
+
+avg_sat_table_17_18
+
+CPS_17_20 <- CPS_SAT|>
+  filter(`School Year` == c("2017-2018" ,  "2020-2021"))
+
+CPS_17_20
+   
+```
+  
+
+
+corr_sat <- cor.test(CPS_SAT_17_18$`Average Composite Score`, CPS_SAT_20_21$`Average Composite Score`, method = "pearson", use= "complete.obs")
+
+corr_sat
+
+
+
+
+
+linear modeel 
+
+#2017 and 2018 
+
+```{r}
+
+sat.app.17_18 <- lm(`Average Composite Score`~`Percent College Readiness`, data = CPS_SAT_17_18) 
+
+sat.app.17_18
+
+sat.app.17_18_graph<-sat.app.17_18|>
+  ggplot( data = CPS_SAT_17_18, 
+          mapping = aes(x = `Percent College Readiness`, y = `Average Composite Score`)) + 
+  geom_point(aes(color = `Type of School`), na.rm = TRUE)+ geom_smooth(na.rm = TRUE) + labs(title = "2020-2021 SAT and College Readiness")
+
+sat.app.17_18_graph
+
+library(broom)
+glance(sat.app.17_18)
+
+fit.x
+```
+
+
+
+#2020-2021
+```{r}
+sat.app.20_21 <-lm(`Average Composite Score`~`Percent College Readiness`, data = CPS_SAT_20_21)
+
+sat.app.20_21
+
+sat.app.20_21_graph <- sat.app.20_21|>
+  ggplot(data = CPS_SAT_20_21, 
+          mapping = aes(x = `Percent College Readiness`, y = `Average Composite Score`)) +  geom_point(aes(color = `Type of School`),na.rm = TRUE) + geom_smooth(na.rm = TRUE)+ labs(title = "2020-2021 SAT and College Readiness")
+
+sat.app.20_21_graph
+
+library(broom)
+glance(sat.app.20_21)
 
 
 ```
+
+
 
