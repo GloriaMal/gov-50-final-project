@@ -1,25 +1,23 @@
 ---
 title: "Gov 50 Final Project"
 author: "Gloria Maldonado"
-description: "My final project"
-output:
-  distill::distill_article:
-    self_contained: false
+description: My final project
+output: distill::distill_article
 ---
 
 
 
 ## Project thoughts
 
+The impact of the COVID-19 Pandemic was one that was seen worldwide. As countries, communities, and economies closed down; one of the sectors that was severely impacted was that of education. Schools closed down, many institutions moved to online courses, and students stopped interacting with others as much. The possibility of the pandemic heavily impacting the sector of education was one of my fears. Children in K-12 education may be susceptible to further impact because of their young age and potential hold it may cause to their learning schedules. 
+In this project, I hope to analyze if the long-standing debate of Charter versus regular Public Schools. In this project, I am focusing on the Chicago Public Schools Network after having obtained access to their testing and School Records. In these data sets we are able to see the SAT averages of different schools within the CPS district including CPS Network schools which are CPS sponsored Public School and Charter Schools which will be the object of my focus. 
+Do Charter Schools perform better than CPS Network Schools? How has Covid-19 impacted school performance through the measurement of SAT Composite Scores and Percentage of College Readiness? 
+I hypothesize that Charter schools will outperform CPS Network Schools, and that the Covid 19 Pandemic will have minimal impacts on student performance. I believe this because Charter Schools receive an additional amount of funding from outside donors in addition to receiving federal funds as well; because they were founded to expand opportunities, I feel as if it would make sense to see them outperform the CPS Network Schools which may have less funding. I also believe that the cohort of highschoolers who took the SAT shouldn’t be heaving affected by the change in teaching caused by the Covid19 pandemic because at this point they would have only endured a year of impacted learning.
 
-Does the influx of new populations in an area through migration and demographic changes have an impact on the amount of students enrolled in educational institutions?In this project I will look at the California Census comparing the results from the 2021 census report and the 2011 census report analyzing the differences in demographic distribution and will compare that to the populations enrolled in educational instutions at the time the census was taking. I am seeking to find out if certain demographics or ethnicities truly impact the amount of students enrolled. I hypothesize that the increasment of immigrant demographics may be a reason for which the educational enrollment may increase because it is an example of how their desires is to obtain an education.  I am interested in exploring data related to census populations in different urban areas around the country and seeing how it compares to the educational enrollment of an area. I will be looking at the variable School Enrollment specifically College or graduate school enrollment,  and the total number of races reported and their distribution within the greater population. I will look at the race variable as an explanatory variable looking at the changes in demographic over the years. My outcome variable will be the educational enrollment in college or grad school. For example, if I observe an increase in the presence of the "non-white hispanic" population, when comparing 2011- 2021,  and likewise see an increase in the enrollment of "non-white hispanic" population from 2011 to 2021, I can attribute that this positive change can be attributed to the demographic's growing desire to obtain an education. If this was true it would be something to help supporty my hypothesis that certain demographics aligning with their migration, have desires to gain educational attainment seen through their enrollment in higher education institutions. On the other hand, if I observe that there is a decrease from 2011-2021 in the educational enrollement of "Non-white hispanic" yet an increase in the demographic percentage of "non-white hispanic" this would be a negative relationship and would prove against my hypothesis. 
 
 
-
-	
-	Variable Name	Description
-"School 
-and Test"	School Year	The school year in which the tests were taken
+# Variable Name	Descriptions
+"School and Test"	School Year	The school year in which the tests were taken
 	School ID	Six digit school identification number
 	School Name	School's short name
 	Test	Assessment (i.e., PSAT9, PSAT10, SAT)
@@ -38,6 +36,10 @@ Attainment	# Students	Number of students taking the PSAT or SAT assessment who r
 
 
 
+###The variables that I will be looking at is the Type of School: (CPS Network or Charter) and I will see how they perform on their SAT through their SAT Composite Score. I will also be separating the data so we are able to compare pre-pandemic 2017-2018 alongside 2020-2021.
+
+###In this section I will be analyzing the SAT Composite Scores (dependent variable) and the Type of School (independent variable). This is because I am under the impression that a school with more resources as a Charter will produce students with higher SATs.
+
 ```{r}
 library(tidyverse)
 library(tidyselect)
@@ -50,13 +52,12 @@ View(new_sat_data)
 
 library(readr)
 type_school_sat <- read_csv("~/Downloads/Gov 50/type_school_sat.csv")
-View(type_school_sat)
+
 ``` 
 
-fixing up sat data 
+###Fixing up the Data Set 
 
 ```{r}
-
 
 new_join_sat <- inner_join(new_sat_data, type_school_sat, by = "School ID" )
 
@@ -67,10 +68,15 @@ CPS_SAT<- CPS_SAT|>
   filter(Test == "SAT")
 
 
-# Making a data set for 2020-2021 School Year 
+## Making a data set for 2020-2021 School Year 
 
 CPS_SAT_20_21 <- CPS_SAT|> 
   filter(`School Year` == "2020-2021")
+```
+
+
+#Box Plot analysing the 2020-2021 School Year's SAT results by Type of School 
+```{r}
 
 #investigating based on 2020-2021 School Year 
 
@@ -89,6 +95,7 @@ CPS_SAT_20_21_plot
 
 ```
 
+#Calculating the Average Composite Score by Type of School Tibble 
 ``` {r}
 #Average of the `Average Composite Scores` by `Type of School`
 
@@ -98,10 +105,21 @@ avg_sat_table_20_21<- CPS_SAT_20_21 |>
   pivot_wider(values_from = sat_avg, names_from = `Type of School`)
 
 avg_sat_table_20_21
+```
 
+
+
+###Is there a difference between CPS Netowrk Schools and Charter Schools? I will be calculating the Average Treatment effect for the 2020-2021 School Year 
+```{r}
 
 #Finding out the difference in averages between Charters and CPS Network 
-# this is the differenc between the SAT SCORE OF CPS and a Charter 
+# this is the difference between the SAT SCORE OF CPS and a Charter 
+
+CPS_SAT_20_21|>
+  group_by(`Type of School`)|> 
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`)
+
 sat_ate <- CPS_SAT_20_21|>
   group_by(`Type of School`)|> 
   summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
@@ -112,7 +130,7 @@ sat_ate <- CPS_SAT_20_21|>
 sat_ate
 ```
 
-
+#Average Percent of College Readiness by Type of School in the 2020-2021 School Year
 ```{r} 
 
 college_readiness_average <- CPS_SAT_20_21|> 
@@ -120,8 +138,16 @@ college_readiness_average <- CPS_SAT_20_21|>
   summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))
 
 college_readiness_average
+```
 
+###Is there a benefit of going to a Charter School as opposed to a CPS Network School in the case of College Readiness? ATE Calculation amoung the 2020-2021 School Year 
+```{r}
 #We will see if there is an average treatement effect for going to charter 
+
+CPS_SAT_20_21 |>
+  group_by(`Type of School`)|>
+  summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))|>
+  pivot_wider(values_from = college_readiness_avg, names_from = `Type of School`)
 
 college_readiness_ate<- CPS_SAT_20_21 |>
   group_by(`Type of School`)|>
@@ -138,8 +164,8 @@ college_readiness_ate
 
 creating bootstraps to find out the various quantiles of the averages of different schools that fall in every different type  
 
+### Lets Create a Bootstrap to find out the various quantiles of the averages of different types of Schools in the School year 2020-2021. Lets see what the lower and higher confidence intervals can show us 
 
-20-21 
 ```{r}
 library(infer)
 set.seed(02138) 
@@ -151,7 +177,6 @@ ate_boots_20_21<- CPS_SAT_20_21|>
   pivot_wider(values_from = sat_avg , names_from = `Type of School`)|>
   mutate(sat_ate = `Charter` - `CPS Network`)
 
-ate_boots_20_21 
 
 
 ate_sat_95_20_21 <- ate_boots_20_21|>
@@ -168,9 +193,15 @@ ate_sat_95_20_21
 
 
 
+#Lets analyze 2017-2018 school year, will we be able to see a change over the years when looking at the most recent 2020-2021? Lets create another bootstap for the 2017-2018 School Year. What will the upper and lower quantiles tell us? 
 ```{r}
 library(infer)
 set.seed(02138) 
+
+CPS_SAT_17_18 <- CPS_SAT|>
+  filter(`School Year` == "2017-2018")
+
+
 
 ate_boots_17_18<- CPS_SAT_17_18|>
   rep_slice_sample(prop = 1, replace = TRUE, reps = 1000)|>
@@ -178,8 +209,6 @@ ate_boots_17_18<- CPS_SAT_17_18|>
   summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
   pivot_wider(values_from = sat_avg , names_from = `Type of School`)|>
   mutate(sat_ate = `Charter` - `CPS Network`)
-
-ate_boots_17_18
 
 
 ate_sat_95_17_18 <- ate_boots_17_18|>
@@ -194,40 +223,16 @@ ate_sat_95_17_18
 
 
 
-Math lets look how that impacts 
-
-```{r}
-math_CPS <- CPS_SAT_20_21|>
-  group_by(`Type of School`)|>
-  summarise(math_avg = mean(`Average Math Score`, na.rm = TRUE))|>
-  pivot_wider(values_from = math_avg, names_from = `Type of School`) 
-
-math_CPS
-
-```
 
 
 
-
-
-correlation 
-
-try to find the correlation of the percentage that are college ready compared to the 
-
-i dont think this is going to be accurate becaus ein the past the two variables were calculates in a way where they were on the same scale and percentage level. 
-
-```{r}
-corr_sat_college_readiness <- cor(CPS_SAT$`Average Composite Score`, CPS_SAT$`Percent College Readiness`, method = "pearson")
-
-corr_sat_college_readiness
-```
-
+### Lets compare the performance of different Types of Schools in 2017-2018 alongside the 2020-2021 Plot we had previously made
 
 Trying to compare the 2020-2021 SAT to 2017 to 2018 
+
+###Data from 2020-2021
 ```{r}
-
-
-# first I could filter so its only 2017-2018 and 2020-2021 but it may be interesting to look at alll the years 
+ 
 
 CPS_SAT_20_21_plot <- CPS_SAT_20_21|>
   select(`School Year`== "2020-2021")|>
@@ -240,8 +245,18 @@ CPS_SAT_20_21_plot <- CPS_SAT_20_21|>
     y = "Average SAT Composite Score" 
   )
 
+
+
 CPS_SAT_20_21_plot
 
+CPS_SAT_20_21|>
+  group_by(`Type of School`)|> 
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`)
+```
+
+###Data from 2017-2018
+```{r}
 CPS_SAT_17_18 <- CPS_SAT|>
   filter(`School Year` == "2017-2018")
 
@@ -263,26 +278,14 @@ avg_sat_table_17_18<- CPS_SAT_17_18 |>
 
 avg_sat_table_17_18
 
-CPS_17_20 <- CPS_SAT|>
-  filter(`School Year` == c("2017-2018" ,  "2020-2021"))
-
-CPS_17_20
-   
 ```
   
 
 
-corr_sat <- cor.test(CPS_SAT_17_18$`Average Composite Score`, CPS_SAT_20_21$`Average Composite Score`, method = "pearson", use= "complete.obs")
 
-corr_sat
+###In order to try to find out if we are able to determine a correlation among the percent of college readiness and SAT scores. I will run a linear regression for both 2017-2018 school year and the 2020-2021 school year comparing the intercepts and coefficient. 
 
-
-
-
-
-linear modeel 
-
-#2017 and 2018 
+#Linear model for 2017-2018
 
 ```{r}
 
@@ -300,12 +303,12 @@ sat.app.17_18_graph
 library(broom)
 glance(sat.app.17_18)
 
-fit.x
+
 ```
 
 
 
-#2020-2021
+#Linear Model for 2020-2021
 ```{r}
 sat.app.20_21 <-lm(`Average Composite Score`~`Percent College Readiness`, data = CPS_SAT_20_21)
 

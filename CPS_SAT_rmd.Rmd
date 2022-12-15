@@ -69,19 +69,32 @@ fixing up sat data
 
 new_join_sat <- inner_join(new_sat_data, type_school_sat, by = "School ID" )
 
-CPS_SAT<- new_join_sat|> 
+CPS_SAT<- new_join_sat
+
+CPS_SAT<- CPS_SAT|>
+  rename("Percent College Readiness" = contains( "Readiness", ignore.case = TRUE, vars = NULL))|>
   filter(Test == "SAT")
 
-CPS_SAT_plot <- CPS_SAT|>
+
+# Making a data set for 2020-2021 School Year 
+
+CPS_SAT_20_21 <- CPS_SAT|> 
+  filter(`School Year` == "2020-2021")
+
+#investigating based on 2020-2021 School Year 
+
+CPS_SAT_20_21_plot <- CPS_SAT_20_21|>
+  select(`School Year`== "2020-2021")|>
   group_by( `Type of School`)|>
-  ggplot( data = CPS_SAT, 
+  ggplot( data = CPS_SAT_20_21, 
           mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
   geom_boxplot(na.rm = TRUE) + 
-  labs(
+  labs( title = "2020-2021 SAT Averages by Type of School",
     x = "Type of School",
     y = "Average SAT Composite Score" 
   )
-CPS_SAT_plot
+
+CPS_SAT_20_21_plot
 
 ```
 
@@ -89,12 +102,12 @@ CPS_SAT_plot
 ``` {r}
 #Average of the `Average Composite Scores` by `Type of School`
 
-avg_sat_table<- CPS_SAT|>
+avg_sat_table_20_21<- CPS_SAT_20_21 |>
   group_by(`Type of School`)|>
   summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
   pivot_wider(values_from = sat_avg, names_from = `Type of School`)
 
-avg_sat_table
+avg_sat_table_20_21
 
 ```
 
@@ -102,7 +115,7 @@ avg_sat_table
 ```{r}
 #Finding out the difference in averages between Charters and CPS Network 
 # this is the differenc between the SAT SCORE OF CPS and a Charter 
-sat_ate <- CPS_SAT|>
+sat_ate <- CPS_SAT_20_21|>
   group_by(`Type of School`)|> 
   summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
   pivot_wider(values_from = sat_avg, names_from = `Type of School`) |> 
@@ -114,11 +127,10 @@ sat_ate
 
 
 ```{r} 
-CPS_SAT<- CPS_SAT|>
-  rename("Percent College Readiness" = contains( "Readiness", ignore.case = TRUE, vars = NULL))
+
   
 
-college_readiness_average <- CPS_SAT|> 
+college_readiness_average <- CPS_SAT_20_21|> 
   group_by(`Type of School`)|>
   summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))
 
@@ -126,7 +138,7 @@ college_readiness_average
 
 #We wil see if there is an average treamtement effect for going to charter 
 
-college_readiness_ate<- CPS_SAT |>
+college_readiness_ate<- CPS_SAT_20_21 |>
   group_by(`Type of School`)|>
   summarise(college_readiness_avg = mean(`Percent College Readiness` , na.rm = TRUE))|>
   pivot_wider(values_from = college_readiness_avg, names_from = `Type of School`)|>
@@ -142,19 +154,67 @@ college_readiness_ate
 creating bootstraps to find out the various quantiles of the averages of different schools that fall in every different type  
 
 
+20-21 
+```{r}
+library(infer)
+set.seed(02138) 
+
+ate_boots_20_21<- CPS_SAT_20_21|>
+  rep_slice_sample(prop = 1, replace = TRUE, reps = 1000)|>
+  group_by(replicate, `Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg , names_from = `Type of School`)|>
+  mutate(sat_ate = `Charter` - `CPS Network`)
+
+ate_boots_20_21 
+
+
+ate_sat_95_20_21 <- ate_boots_20_21|>
+  ungroup(replicate)|>
+  summarize(
+    lower_ci = quantile(sat_ate, probs = .025),
+    upper_ci = quantile(sat_ate, probs = 0.975)
+  )
+
+ate_sat_95_20_21
+
+```
 
 ```{r}
 library(infer)
 set.seed(02138) 
 
-ate_boots<- CPS_SAT|>
+ate_boots_17_18<- CPS_SAT_17_18|>
   rep_slice_sample(prop = 1, replace = TRUE, reps = 1000)|>
-  mutate()
+  group_by(replicate, `Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg , names_from = `Type of School`)|>
+  mutate(sat_ate = `Charter` - `CPS Network`)
+
+ate_boots_17_18
 
 
+ate_sat_95_17_18 <- ate_boots_17_18|>
+  ungroup(replicate)|>
+  summarize(
+    lower_ci = quantile(sat_ate, probs = .025),
+    upper_ci = quantile(sat_ate, probs = 0.975)
+  )
 
+ate_sat_95_17_18
 ```
 
+Math lets look how that impacts 
+
+```{r}
+math_CPS <- CPS_SAT_20_21|>
+  group_by(`Type of School`)|>
+  summarise(math_avg = mean(`Average Math Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = math_avg, names_from = `Type of School`) 
+
+math_CPS
+
+```
 
 
 
@@ -171,3 +231,74 @@ corr_sat_college_readiness <- cor(CPS_SAT$`Average Composite Score`, CPS_SAT$`Pe
 
 corr_sat_college_readiness
 ```
+
+
+Trying to compare the 2020-2021 SAT to 2017 to 2018 
+```{r}
+
+
+# first I could filter so its only 2017-2018 and 2020-2021 but it may be interesting to look at alll the years 
+
+CPS_SAT_20_21_plot <- CPS_SAT_20_21|>
+  select(`School Year`== "2020-2021")|>
+  group_by( `Type of School`)|>
+  ggplot( data = CPS_SAT_20_21, 
+          mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
+  geom_boxplot(na.rm = TRUE) + 
+  labs( title = "2020-2021 SAT Averages by Type of School",
+    x = "Type of School",
+    y = "Average SAT Composite Score" 
+  )
+
+CPS_SAT_20_21_plot
+
+CPS_SAT_17_18 <- CPS_SAT|>
+  filter(`School Year` == "2017-2018")
+
+CPS_SAT_17_18_plot <-CPS_SAT_17_18|>
+  group_by(`Type of School`)|>
+  ggplot( data = CPS_SAT_17_18, 
+          mapping = aes(x = `Type of School`, y = `Average Composite Score`)) + 
+  geom_boxplot(na.rm = TRUE) + 
+  labs( title = "SAT Averages by Type of School 2017-2018 ",
+    x = "Type of School",
+    y = "Average SAT Composite Score" 
+  )
+CPS_SAT_17_18_plot
+
+avg_sat_table_17_18<- CPS_SAT_17_18 |>
+  group_by(`Type of School`)|>
+  summarise(sat_avg = mean(`Average Composite Score`, na.rm = TRUE))|>
+  pivot_wider(values_from = sat_avg, names_from = `Type of School`)
+
+avg_sat_table_17_18
+
+CPS_17_20 <- CPS_SAT|>
+  filter(`School Year` == c("2017-2018" ,  "2020-2021"))
+
+CPS_17_20
+   
+
+  
+
+
+corr_sat <- cor.test(CPS_SAT_17_18$`Average Composite Score`, CPS_SAT_20_21$`Average Composite Score`, method = "pearson", use= "complete.obs")
+
+corr_sat
+
+
+```
+
+
+```{r}
+sat.app.17_18 <- lm(`Average Composite Score`~`Percent College Readiness`, data = CPS_SAT_17_18)
+
+sat.app.17_18
+
+sat.app.20_21 <-lm(`Average Composite Score`~`Percent College Readiness`, data = CPS_SAT_20_21)
+
+sat.app.20_21
+```
+
+
+
