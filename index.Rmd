@@ -95,6 +95,8 @@ CPS_SAT_20_21_plot
 
 ```
 
+
+
 #Calculating the Average Composite Score by Type of School Tibble 
 ``` {r}
 #Average of the `Average Composite Scores` by `Type of School`
@@ -106,6 +108,7 @@ avg_sat_table_20_21<- CPS_SAT_20_21 |>
 
 avg_sat_table_20_21
 ```
+
 
 
 
@@ -129,6 +132,11 @@ sat_ate <- CPS_SAT_20_21|>
 
 sat_ate
 ```
+### When analysing the results of the 2020-2021 Average composite scores by schools we are able to see that the CPS Network is one that has the most range as it has point in the very high almost 1600 area and has some very low scores lower than 800 significantly. In comparison the Charter's avergae is also very similar as they are located around the mid 800s range. It is important to analyze alongside the Tibble, the average composite score for the CPS Network Schools is 872 while the average composite score for the Charter Schools is 855. We are able to see that the CPS Network schools have a higher average. When looking back at our Hypothesis we are seeing that CPS Network may be doing better in SAT Cmposite Scores on average than their Charter Counterparts.When calculating the ATE as the Treatment is going to a Charter School and the control is the CPS Network school.  The ATE shows us that Charter schools on average arescoring -16.32308 less than CPS Network Schoolsr on the SAT.
+
+
+###Now let's explore another variable:College readiness in the same manner that we did for the previous variable.
+
 
 #Average Percent of College Readiness by Type of School in the 2020-2021 School Year
 ```{r} 
@@ -140,7 +148,7 @@ college_readiness_average <- CPS_SAT_20_21|>
 college_readiness_average
 ```
 
-###Is there a benefit of going to a Charter School as opposed to a CPS Network School in the case of College Readiness? ATE Calculation amoung the 2020-2021 School Year 
+###Is there a benefit of going to a Charter School as opposed to a CPS Network School in the case of College Readiness? ATE Calculation amoung the 2020-2021 School Year for COllege Readiness
 ```{r}
 #We will see if there is an average treatement effect for going to charter 
 
@@ -160,9 +168,10 @@ college_readiness_ate
 
 ```
 
+###After looking at this subsequent variable of College Readiness, which is measured in percents, we are able to see that the average college readiness per type of school varies slightly. It seems that CPS Network schools are on aberage 17.3 percent in College Readiness, while the Charter Schools are 12.5 percent. When calculating the ATE as the Treatment is going to a Charter School and the control is the CPS Network school. The ATE for college readiness is -4.770769, this meaning that on average a Charter student is -4.70769 less college ready than a CPS Network Student. 
 
 
-creating bootstraps to find out the various quantiles of the averages of different schools that fall in every different type  
+
 
 ### Lets Create a Bootstrap to find out the various quantiles of the averages of different types of Schools in the School year 2020-2021. Lets see what the lower and higher confidence intervals can show us 
 
@@ -189,6 +198,8 @@ ate_sat_95_20_21 <- ate_boots_20_21|>
 ate_sat_95_20_21
 
 ```
+
+### In this case we are able to see that in the 95% confidence interval we are able to see that on average in most cases a CHarter School will outperform a CPS Network School by 15.7 point more in their SAT Composite score. In the lower confidence interva we are able to see that in some small cases the CPS Network school outperforms the Charter by 46.7 points, reflected in the -46.7 lower_ci. This counters what we have previously seen, showing that in many cases the Charter are indeed outperforming, yet there are  instances in which CPS Network Schools outperform the Charter schools by nearly 46.7 points. The Range of the CPS Network schools seemes to be bigger in this case.
 
 
 
@@ -220,8 +231,6 @@ ate_sat_95_17_18 <- ate_boots_17_18|>
 
 ate_sat_95_17_18
 ```
-
-
 
 
 
@@ -281,6 +290,9 @@ avg_sat_table_17_18
 ```
   
 
+### When analyzing the confidence intervals for this bootstrap of the 2017-2018 year we are able to see that the upper confidence interval is 60.5 which is reflecting that the charter schools are overperforming their CPS Network counterparts by nearly 60.5 points. In the lower confidence interval we see that the lower confidence interval is -9.38 which means that it was by 9.38 points  that the CPS Network schools outperformed Charters. When comparing the results from 2017-2018 and 2020-21 we see that students from Charter Schools were outperforming CPS Network students more in 2017-2018 reflecting the 60.5 as opposed to the 15.7 in 2020-2021. We also see a difference in the lower confidence intervals as the lower confidence interval in 2017-2018 was -9.83 which is a smaller difference than the one of -46.7 reflected in 2020-2021. This shows us that on  students are underperforming in comarison to the data from 2017-2018. Could we attribute this to covid? 
+
+
 
 
 ###In order to try to find out if we are able to determine a correlation among the percent of college readiness and SAT scores. I will run a linear regression for both 2017-2018 school year and the 2020-2021 school year comparing the intercepts and coefficient. 
@@ -326,5 +338,7 @@ glance(sat.app.20_21)
 
 ```
 
+### When looking at both of these models we are able to see a poitive correlation within the Percent College Readiness and Average Composite score. As a student achieves a higher Composite score, their percent of college readiness seems to increase with it. This is true in both graphs. In the 2017-2018 Linear model we are able to see that the  y intercpet is 791.495 meaning that at 0% college readiness a student is scoring a 791.495 out of the possible 1600 in an SAT. The coefficient is 4.568 which helps us see that in this case that with every increase in 4.568 points the percent of college readiness increase by 1. In the 2020-2021 linear model we see that the y intercept is 787.949 meaning that at 0% college readiness a student is scoring a 787.949 out of the 1600. The coefficient is 4.921which helps us see that in this case with the increase in points by 4.921 we see an increase by 1. 
 
 
+###CONCLUSION In this project I yearned to see if Charter schools outperform CPS Network schools. I was able to see that in actuality after analyzing the regressions  and graphs that many CPS Network schools outperform CHarter schools, meaning that they have a bigger range, while most of the times accoring to the averages, a Charter school usually outperforms a CPS Network School. We were also able to see that  when looking at the 2017-2018 school year alongside the 2020-2021 School Year there was a decline in the SAT Composite scores of students and their college readiness. Overall we must keep in mind that SAT are an exam that is arbitrary meaning that as many universities dont take the exam this does not have a true way to dictate who is college ready and who is not. SATs take a lot of time to study for and we can understand the situation of different public schools varies on their Type of institution. However this helps us see the way that we were able to correlate SAT performance, College Readiness and Type of School over time. 
